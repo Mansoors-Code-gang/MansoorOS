@@ -10,12 +10,12 @@ start:          jmp loader					; jump over OEM block
 
 ; Error Fix 2 - Removing the ugly TIMES directive -------------------------------------
 
-;;	TIMES 0Bh-$+start DB 0					
-				
-								
+;;	TIMES 0Bh-$+start DB 0					; The OEM Parameter Block is exactally 3 bytes
+								; from where we are loaded at. This fills in those
+								; 3 bytes, along with 8 more. Why?
 
-bpbOEM			db "MnsoorOS"				
-				         
+bpbOEM			db "MansoorOS   "				; This member must be exactally 8 bytes. It is just
+								; the name of your OS :) Everything else remains the same.
 
 bpbBytesPerSector:  	DW 512
 bpbSectorsPerCluster: 	DB 1
@@ -36,7 +36,7 @@ bsSerialNumber:	        DD 0xa0a1a2a3
 bsVolumeLabel: 	        DB "MOS FLOPPY "
 bsFileSystem: 	        DB "FAT12   "
 
-msg	db	"Welcome to MansoorOS!", 0
+msg	db	"Welcome to MansoorOS!", 0		; the string to print
 
 ;***************************************
 ;	Prints a string
@@ -44,14 +44,14 @@ msg	db	"Welcome to MansoorOS!", 0
 ;***************************************
 
 Print:
-			lodsb					
-			or			al, al
-			jz			PrintDone
-			mov			ah,	0eh
+			lodsb					; load next byte from string from SI to AL
+			or			al, al		; Does AL=0?
+			jz			PrintDone	; Yep, null terminator found-bail out
+			mov			ah,	0eh	; Nope-Print the character
 			int			10h
-			jmp			Print
+			jmp			Print		; Repeat until null terminator found
 PrintDone:
-			ret
+			ret					; we are done, so return
 
 ;*************************************************;
 ;	Bootloader Entry Point
@@ -59,20 +59,20 @@ PrintDone:
 
 loader:
 
-	xor	ax, ax
-	mov	ds, ax
-	mov	es, ax
-				
+	xor	ax, ax		; Setup segments to insure they are 0. Remember that
+	mov	ds, ax		; we have ORG 0x7c00. This means all addresses are based
+	mov	es, ax		; from 0x7c00:0. Because the data segments are within the same
+				; code segment, null em.
 
-	mov	si, msg
-	call	Print
+	mov	si, msg						; our message to print
+	call	Print						; call our print function
 
-	xor	ax, ax
-	int	0x12
+	xor	ax, ax						; clear ax
+	int	0x12						; get the amount of KB from the BIOS
 
-	cli			
-	hlt				
+	cli							; Clear all Interrupts
+	hlt							; halt the system
 	
-times 510 - ($-$$) db 0
+times 510 - ($-$$) db 0						; We have to be 512 bytes. Clear the rest of the bytes with 0
 
-dw 0xAA55
+dw 0xAA55							; Boot Signiture
