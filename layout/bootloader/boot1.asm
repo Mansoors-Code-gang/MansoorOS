@@ -15,7 +15,7 @@ start:          jmp loader					; jump over OEM block
 								; 3 bytes, along with 8 more. Why?
 
 bpbOEM			db "MansoorOS   "				; This member must be exactally 8 bytes. It is just
-								; the name of your OS :) Everything else remains the same.
+								; the name of our OS :) Everything else remains the same.
 
 bpbBytesPerSector:  	DW 512
 bpbSectorsPerCluster: 	DB 1
